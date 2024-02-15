@@ -164,9 +164,9 @@ async function mostrarCalorias() {
     detenerLoader();
 
     document.querySelector("#mostrarCalorias").innerHTML = `<ion-list><ion-item>Meta diaria de calorias: ${localStorage.getItem(
-        "calorias"
-    )}</ion.item></ion-list>
-        <ion-list><ion-item color=${calcCaloriasQueFaltanParaLlegarAlLimite()}>Calorias de hoy: ${caloriasDelDia}</ion-item></ion-list>
+        "calorias")}</ion-item></ion-list>
+        <ion-list>
+        <ion-item color=${calcCaloriasQueFaltanParaLlegarAlLimite()}>Calorias de hoy: ${caloriasDelDia} (${calcRestanteOSobranteDeCalorias()})</ion-item></ion-list>
         <ion-list><ion-item>Calorias totales registradas: ${caloriasTotales}</ion-item></ion-list>`;
 }
 
@@ -174,13 +174,20 @@ function calcCaloriasQueFaltanParaLlegarAlLimite() {
     let metaDiaria = localStorage.getItem("calorias");
     if (caloriasDelDia > metaDiaria) {
         return "danger";
-    } else if (
-        caloriasDelDia >= metaDiaria * 0.9 &&
-        caloriasDelDia <= metaDiaria
-    ) {
+    } else if (caloriasDelDia >= metaDiaria * 0.9 && caloriasDelDia <= metaDiaria) {
         return "warning";
     } else {
         return "success";
+    }
+}
+
+function calcRestanteOSobranteDeCalorias(){
+    let metaDiaria = localStorage.getItem("calorias");
+
+    if (caloriasDelDia < metaDiaria){
+        return `+ ${metaDiaria - caloriasDelDia}`;
+    } else {
+        return `- ${caloriasDelDia - metaDiaria}`;
     }
 }
 
@@ -231,7 +238,7 @@ function navegar(e) {
 
 async function registrarAlimento() {
     let idAlimento = document.querySelector("#comidaRegistro").value;
-    let cantidad = document.querySelector("#cantidadAlimento").value;
+    let cantidad = Number(document.querySelector("#cantidadAlimento").value);
     let fecha = document.querySelector("#calendario").value;
 
     if (idAlimento === "" || cantidad === "") {
@@ -309,7 +316,7 @@ async function poblarSelectAlimentos() {
         const data = await response.json();
 
         for (let alimento of data.alimentos) {
-            slcAlimentos.innerHTML += `<ion-select-option value="${alimento.id}">${alimento.nombre} (${alimento.porcion})</ion-select-option>`;
+            slcAlimentos.innerHTML += `<ion-select-option value="${alimento.id}">${alimento.nombre} (${alimento.porcion.substring(alimento.porcion.length - 1)})</ion-select-option>`;
         }
         detenerLoader();
     } catch (err) {
@@ -382,7 +389,7 @@ async function getListaAlimentos() {
                             c.calorias
                         );
                         lista.innerHTML += `
-                        <ion-card>
+                        <ion-card color="light-purple">
             <ion-card-header>
               <ion-card-subtitle>${comida.fecha}</ion-card-subtitle>
               <ion-card-title><img src="https://calcount.develotion.com/imgs/${c.imagen}.png" /> ${c.nombre}</ion-card-title>
@@ -443,7 +450,7 @@ async function getCalorias() {
 
 function calcCalorias(cantidad, unidad, calorias) {
     let porcion = unidad.substring(0, unidad.length - 1);
-    return (cantidad * porcion * calorias) / porcion;
+    return ((cantidad / porcion) * calorias)
 }
 
 async function eliminarRegistro(id) {
