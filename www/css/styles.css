@@ -19,7 +19,23 @@
 	--ion-color-light-purple-contrast-rgb: 0,0,0;
 	--ion-color-light-purple-shade: #9272c9;
 	--ion-color-light-purple-tint: #af8ee7;
+
+	--ion-color-rose: #831843;
+    --ion-color-rose-rgb: 131, 24, 67;
+    --ion-color-rose-contrast: #ffffff;
+    --ion-color-rose-contrast-rgb: 255, 255, 255;
+    --ion-color-rose-shade: #73153b;
+    --ion-color-rose-tint: #8f2f56;
 }
+
+.ion-color-rose {
+    --ion-color-base: var(--ion-color-rose);
+    --ion-color-base-rgb: var(--ion-color-rose-rgb);
+    --ion-color-contrast: var(--ion-color-rose-contrast);
+    --ion-color-contrast-rgb: var(--ion-color-rose-contrast-rgb);
+    --ion-color-shade: var(--ion-color-rose-shade);
+    --ion-color-tint: var(--ion-color-rose-tint);
+  }
 
 .ion-color-purple {
 	--ion-color-base: var(--ion-color-purple);
@@ -50,6 +66,36 @@
 
 ion-card {
 	padding: 1rem;
+	border: 5px solid #6b046b;
+	max-width: max-content;
+	margin: 1rem auto;
+	color: #450345;
+	transition: all 0.3s ease-in-out;
+	background: white;
+}
+
+ion-card:hover{
+	background: rgb(251, 236, 252);
+}
+
+ion-content {
+	padding: 4rem;
+}
+
+ion-datetime {
+    --background: #fff1f2;
+    --background-rgb: 255, 241, 242;
+
+    border-radius: 16px;
+    box-shadow: rgba(var(--ion-color-rose-rgb), 0.3) 0px 10px 15px -3px;
+}
+
+ion-button {
+	transition: all 0.3s ease-out;
+}
+
+ion-button:hover {
+	background: white;
 }
 
 #logo {

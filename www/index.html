@@ -28,7 +28,7 @@
     <ion-menu side="start" menu-id="first" content-id="main" id="menu">
       <ion-header>
         <ion-toolbar color="purple">
-          <ion-title>Start Menu</ion-title>
+          <ion-title>Opciones</ion-title>
         </ion-toolbar>
       </ion-header>
       <ion-content>
@@ -39,7 +39,7 @@
     </ion-menu>
     <div id="main"></div>
 
-    <page-home class="ion-page" id="pantalla-home">
+    <page-home class="ion-page ion-padding-bottom ion-margin-bottom" id="pantalla-home">
       <ion-header>
         <ion-toolbar color="purple">
           <ion-buttons slot="start">
@@ -53,7 +53,7 @@
       </ion-content>
     </page-home>
 
-    <page-login class="ion-page" id="pantalla-login">
+    <page-login class="ion-page ion-padding-bottom ion-margin-bottom" id="pantalla-login">
       <ion-header>
         <ion-toolbar color="purple">
           <ion-buttons slot="start">
@@ -76,7 +76,7 @@
       </ion-content>
     </page-login>
 
-    <page-registro class="ion-page" id="pantalla-registro">
+    <page-registro class="ion-page ion-padding-bottom ion-margin-bottom" id="pantalla-registro">
       <ion-header>
         <ion-toolbar color="purple">
           <ion-buttons slot="start">
@@ -110,7 +110,7 @@
       </ion-footer>
     </page-registro>
 
-    <page-cargar-alimentos class="ion-page" id="pantalla-cargar-alimentos">
+    <page-cargar-alimentos class="ion-page ion-padding-bottom ion-margin-bottom" id="pantalla-cargar-alimentos">
       <ion-header>
         <ion-toolbar color="purple">
           <ion-buttons slot="start">
@@ -120,7 +120,7 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-        <ion-list>
+        <ion-list id="registro">
           <ion-item>
             <ion-select label="Elija su alimento" label-placement="floating" id="comidaRegistro"></ion-select>
           </ion-item>
@@ -129,9 +129,9 @@
           </ion-item>
           <ion-item>
             <ion-datetime-button datetime="calendario"></ion-datetime-button>
-
             <ion-modal>
-              <ion-datetime id="calendario"></ion-datetime>
+              <ion-datetime id="calendario" presentation="date" show-default-buttons="true" done-text="Confirmar" cancel-text="Cancelar">
+              </ion-datetime>
             </ion-modal>
           </ion-item>
           <ion-button color="dark-purple" expand="full" id="btnRegistrarComida">Registrar comida</ion-button>
@@ -144,7 +144,7 @@
       </ion-footer>
     </page-cargar-alimentos>
 
-    <page-lista-alimentos class="ion-page" id="pantalla-lista-alimentos">
+    <page-lista-alimentos class="ion-page ion-padding-bottom ion-margin-bottom" id="pantalla-lista-alimentos">
       <ion-header>
         <ion-toolbar color="purple">
           <ion-buttons slot="start">
@@ -153,8 +153,20 @@
           <ion-title>Lista Alimentos</ion-title>
         </ion-toolbar>
       </ion-header>
-      <ion-content id="lista-alimentos" class="ion-padding">
-
+      <ion-content class="ion-padding" id="lista-alimentos">
+        <!-- <ion-item>
+          <ion-datetime-button datetime="fecha1"></ion-datetime-button>
+          <ion-modal>
+            <ion-datetime id="fecha1" presentation="date" show-default-buttons="true" done-text="Confirmar" cancel-text="Cancelar">
+            </ion-datetime>
+          </ion-modal>
+          <ion-datetime-button datetime="fecha2"></ion-datetime-button>
+          <ion-modal>
+            <ion-datetime id="fecha2" presentation="date" show-default-buttons="true" done-text="Confirmar" cancel-text="Cancelar">
+            </ion-datetime>
+          </ion-modal>
+        <ion-button color="dark-purple" onclick="getListaFiltradaAlimentos()">Filtrar busqueda</ion-button>
+        </ion-item> -->
       </ion-content>
       <ion-footer class="ion-margin-top">
         <ion-toolbar>
@@ -163,7 +175,7 @@
       </ion-footer>
     </page-lista-alimentos>
 
-    <page-calorias class="ion-page" id="pantalla-calorias">
+    <page-calorias class="ion-page ion-padding-bottom ion-margin-bottom" id="pantalla-calorias">
       <ion-header>
         <ion-toolbar color="purple">
           <ion-buttons slot="start">
@@ -182,7 +194,7 @@
       </ion-footer>
     </page-calorias>
 
-    <page-mapa class="ion-page" id="pantalla-mapa">
+    <page-mapa class="ion-page ion-padding-bottom ion-margin-bottom" id="pantalla-mapa">
       <ion-header>
         <ion-toolbar color="purple">
           <ion-buttons slot="start">
