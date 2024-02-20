@@ -50,10 +50,6 @@ function eventos() {
     document
         .querySelector("#btnRegistrarComida")
         .addEventListener("click", registrarAlimento);
-
-    // //document.querySelector("#btnFiltrarLista").addEventListener('click', () => {
-    //     alert('hola')
-    // })
 }
 
 function tomarDatosLogin() {
@@ -261,6 +257,11 @@ async function registrarAlimento() {
     } else {
         fecha = recortarFecha(fecha);
     }
+
+    if (!fechaEsValida(fecha)) {
+        mostrarToast("La fecha no puede ser mayor que hoy", 3500);
+        return;
+    }
     let idUser = localStorage.getItem("idUser");
     let comida = new Object();
 
@@ -406,8 +407,7 @@ async function getListaAlimentos() {
             </ion-modal>
           <ion-button color="dark-purple" onclick="getListaFiltradaAlimentos()">Filtrar busqueda</ion-button>
           </ion-item>`;
-            listaAMostrar = ordenarListaPorFechas(data.registros);
-            for (let comida of listaAMostrar) {
+            for (let comida of data.registros) {
                 for (let c of alimentos.alimentos) {
                     if (comida.idAlimento === c.id) {
                         let caloriasDeAlimento = calcCalorias(
@@ -463,6 +463,10 @@ async function getListaFiltradaAlimentos() {
         f2 = recortarFecha(f2);
     }
 
+    if (!fechaEsValida(f1) || !fechaEsValida(f2)) {
+        mostrarToast("La fecha no puede ser mayor que hoy", 3500);
+        return;
+    }
     mostrarLoader("Cargando lista filtrada.");
     let listaFiltrada = await getListaFiltrada(f1, f2);
 
@@ -561,12 +565,6 @@ async function getListaFiltrada(f1, f2) {
     return listaFiltrada;
 }
 
-function ordenarListaPorFechas(lista) {
-    let listaOrdenada = lista.sort((a, b) => a - b);
-
-    return listaOrdenada;
-}
-
 function volverFechaANum(fecha) {
     let num = 0;
 
@@ -577,6 +575,10 @@ function volverFechaANum(fecha) {
     }
 
     return Number(num);
+}
+
+function fechaEsValida(fecha) {
+    return volverFechaANum(fecha) <= volverFechaANum(getFechaActual());
 }
 
 function fijarFecha() {
