@@ -95,7 +95,7 @@ async function iniciarSesion(username, password) {
             NAV.push("page-home");
         }
     } catch (err) {
-        console.log(err);
+        mostrarToast(err, 5000);
     }
 }
 
@@ -107,23 +107,22 @@ function logout() {
 }
 
 function tomarDatosRegistro() {
-    let user = document.getElementById("usuarioR").value;
+    let username = document.getElementById("usuarioR").value;
     let pw = document.getElementById("passwordR").value;
     let pais = document.getElementById("paisR").value;
     let cals = document.getElementById("caloriasR").value;
 
-    // validar que no esten vacios.
     if (pw === "" || username === "" || pais === undefined || cals === "") {
         mostrarToast("Todos los datos son obligatorios.", 3000);
         return;
     }
 
-    registrar(user, pw, pais, cals);
+    registrar(username, pw, pais, cals);
 }
 
-async function registrar(user, pw, pais, cals) {
+async function registrar(username, pw, pais, cals) {
     let usuario = {};
-    usuario.usuario = user;
+    usuario.usuario = username;
     usuario.password = pw;
     usuario.idPais = pais;
     usuario.caloriasDiarias = cals;
@@ -142,6 +141,7 @@ async function registrar(user, pw, pais, cals) {
         const data = await response.json();
 
         detenerLoader();
+
         if (data.mensaje != null) {
             mostrarToast(data.mensaje, 2000);
         } else {
@@ -153,7 +153,7 @@ async function registrar(user, pw, pais, cals) {
             NAV.push("page-home");
         }
     } catch (err) {
-        console.log(err);
+        mostrarToast(err, 5000);
     }
 }
 
@@ -230,7 +230,6 @@ function navegar(e) {
     } else if (RUTA == "/cargar-alimentos") {
         CARGARALIMENTOS.style.display = "block";
         poblarSelectAlimentos();
-        fijarFecha();
     } else if (RUTA == "/lista-alimentos") {
         LISTARALIMENTOS.style.display = "block";
         getListaAlimentos();
@@ -252,13 +251,9 @@ async function registrarAlimento() {
         return;
     }
 
-    if (fecha === undefined) {
-        fecha = getFechaActual();
-    } else {
-        fecha = recortarFecha(fecha);
-    }
+    fecha = validarFecha(fecha);
 
-    if (!fechaEsValida(fecha)) {
+    if (fechaEsMayorQueHoy(fecha)) {
         mostrarToast("La fecha no puede ser mayor que hoy", 3500);
         return;
     }
@@ -287,7 +282,7 @@ async function registrarAlimento() {
 
         mostrarToast("Alta correcta", 2000);
     } catch (err) {
-        console.log(err);
+        mostrarToast(err, 5000);
     }
 }
 
@@ -335,7 +330,7 @@ async function poblarSelectAlimentos() {
         }
         detenerLoader();
     } catch (err) {
-        console.log(err);
+        mostrarToast(err, 5000);
     }
 }
 
@@ -355,7 +350,7 @@ async function poblarSelectDePaises() {
         }
         detenerLoader();
     } catch (err) {
-        console.log(err);
+        mostrarToast(err, 5000);
     }
 }
 async function getListaAlimentos() {
@@ -376,7 +371,7 @@ async function getListaAlimentos() {
         );
 
         const data = await response.json();
-        console.log(data);
+
         const responseAlimentos = await fetch(
             "https://calcount.develotion.com/alimentos.php",
             {
@@ -392,9 +387,32 @@ async function getListaAlimentos() {
 
         detenerLoader();
         if (data.registros.length < 1) {
-            lista.innerHTML = "No tiene registros hechos.";
+            lista.innerHTML = `No tiene registros hechos.`;
         } else {
-            lista.innerHTML = `<ion-item>
+            lista.innerHTML = mostrarBotonDeListaFiltrada()
+
+            for (let comida of data.registros) {
+                for (let c of alimentos.alimentos) {
+                    if (comida.idAlimento === c.id) {
+                        let caloriasDeAlimento = calcCalorias(
+                            comida.cantidad,
+                            c.porcion,
+                            c.calorias
+                        );
+                        let fecha = comida.fecha === getFechaActual() ? "Hoy" : comida.fecha;
+
+                        lista.innerHTML += crearCardDeComida(fecha, c.imagen, c.nombre, caloriasDeAlimento, comida.id);
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        mostrarLoader(err, 8000);
+    }
+}
+
+function mostrarBotonDeListaFiltrada(){
+    return `<ion-item>
             <ion-datetime-button datetime="fecha1"></ion-datetime-button>
             <ion-modal>
               <ion-datetime id="fecha1" presentation="date" show-default-buttons="true" done-text="Confirmar" cancel-text="Cancelar">
@@ -406,72 +424,58 @@ async function getListaAlimentos() {
               </ion-datetime>
             </ion-modal>
           <ion-button color="dark-purple" onclick="getListaFiltradaAlimentos()">Filtrar busqueda</ion-button>
-          </ion-item>`;
-            for (let comida of data.registros) {
-                for (let c of alimentos.alimentos) {
-                    if (comida.idAlimento === c.id) {
-                        let caloriasDeAlimento = calcCalorias(
-                            comida.cantidad,
-                            c.porcion,
-                            c.calorias
-                        );
-                        let fecha =
-                            comida.fecha === getFechaActual()
-                                ? "Hoy"
-                                : comida.fecha;
-                        lista.innerHTML += `
-                        <ion-card color="light-purple">
+          </ion-item>`
+}
+
+function crearCardDeComida(fecha, imagen, nombre, calorias, id){
+    return `<ion-card color="light-purple">
             <ion-card-header>
               <ion-card-subtitle>${fecha}</ion-card-subtitle>
-              <ion-card-title><img src="https://calcount.develotion.com/imgs/${c.imagen}.png" /> ${c.nombre}</ion-card-title>
+              <ion-card-title><img src="https://calcount.develotion.com/imgs/${imagen}.png" /> ${nombre}</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              Calorias: ${caloriasDeAlimento}
+              Calorias: ${calorias}
             </ion-card-content>
-            <ion-button id="${comida.id}" onclick="eliminarRegistro(this.id)" color="dark-purple">Eliminar Registro</ion-button>
-          </ion-card>`;
-                    }
-                }
-            }
-        }
-    } catch (err) {
-        mostrarLoader(err, 8000);
+            <ion-button id="${id}" onclick="eliminarRegistro(this.id)" color="dark-purple">Eliminar Registro</ion-button>
+          </ion-card>`
+}
+
+function validarFecha(f) {
+    if (f === undefined) {
+        return getFechaActual();
+    }
+
+    if (f != getFechaActual()) {
+        return recortarFecha(f);
     }
 }
 
 async function getListaFiltradaAlimentos() {
     let lista = document.getElementById("lista-alimentos");
     let idUser = localStorage.getItem("idUser");
-    let f1 = document.querySelector("#fecha1").value;
-    let f2 = document.querySelector("#fecha2").value;
+    let f1 = document.getElementById("fecha1").value;
+    let f2 = document.getElementById("fecha2").value;
 
-    if (f1 === undefined && f2 === undefined) {
-        f1 = getFechaActual();
-        f2 = getFechaActual();
-    } else if (f1 === undefined) {
-        f1 = getFechaActual();
-    } else if (f2 === undefined) {
-        f2 = getFechaActual();
+    f1 = validarFecha(f1);
+    f2 = validarFecha(f2);
+
+    if (f1 > f2) {
+        let aux = f2;
+        f2 = f1;
+        f1 = aux;
     }
 
-    if (f1 != getFechaActual() && f2 != getFechaActual()) {
-        f1 = recortarFecha(f1);
-        f2 = recortarFecha(f2);
-    } else if (f1 != getFechaActual()) {
-        f1 = recortarFecha(f1);
-    } else if (f2 != getFechaActual()) {
-        f2 = recortarFecha(f2);
-    }
-
-    if (!fechaEsValida(f1) || !fechaEsValida(f2)) {
+    if (fechaEsMayorQueHoy(f1) || fechaEsMayorQueHoy(f2)) {
         mostrarToast("La fecha no puede ser mayor que hoy", 3500);
         return;
     }
+
     mostrarLoader("Cargando lista filtrada.");
     let listaFiltrada = await getListaFiltrada(f1, f2);
 
     if (listaFiltrada.length < 1) {
-        lista.innerHTML = "No tiene registros hechos en esas fechas.";
+        lista.innerHTML = mostrarBotonDeListaFiltrada()
+        lista.innerHTML += `<ion-item>No tiene registros hechos en esas fechas.</ion-item>`;
         detenerLoader();
         return;
     }
@@ -488,21 +492,9 @@ async function getListaFiltradaAlimentos() {
     );
 
     const alimentos = await responseAlimentos.json();
-
     detenerLoader();
-    lista.innerHTML = `<ion-item>
-            <ion-datetime-button datetime="fecha1"></ion-datetime-button>
-            <ion-modal>
-              <ion-datetime id="fecha1" presentation="date" show-default-buttons="true" done-text="Confirmar" cancel-text="Cancelar">
-              </ion-datetime>
-            </ion-modal>
-            <ion-datetime-button datetime="fecha2"></ion-datetime-button>
-            <ion-modal>
-              <ion-datetime id="fecha2" presentation="date" show-default-buttons="true" done-text="Confirmar" cancel-text="Cancelar">
-              </ion-datetime>
-            </ion-modal>
-          <ion-button color="dark-purple" onclick="getListaFiltradaAlimentos()">Filtrar busqueda</ion-button>
-          </ion-item>`;
+
+    lista.innerHTML = mostrarBotonDeListaFiltrada()
     for (let comida of listaFiltrada) {
         for (let c of alimentos.alimentos) {
             if (comida.idAlimento === c.id) {
@@ -511,8 +503,8 @@ async function getListaFiltradaAlimentos() {
                     c.porcion,
                     c.calorias
                 );
-                let fecha =
-                    comida.fecha === getFechaActual() ? "Hoy" : comida.fecha;
+                let fecha = comida.fecha === getFechaActual() ? "Hoy" : comida.fecha;
+                
                 lista.innerHTML += `
                             <ion-card color="light-purple">
                 <ion-card-header>
@@ -548,9 +540,9 @@ async function getListaFiltrada(f1, f2) {
         const data = await response.json();
 
         for (let comida of data.registros) {
-            let fechaDelRegistro = volverFechaANum(comida.fecha);
-            let fechaMenor = volverFechaANum(f1);
-            let fechaMayor = volverFechaANum(f2);
+            let fechaDelRegistro = new Date(comida.fecha);
+            let fechaMenor = new Date(f1);
+            let fechaMayor = new Date(f2);
             if (
                 fechaDelRegistro >= fechaMenor &&
                 fechaDelRegistro <= fechaMayor
@@ -565,30 +557,11 @@ async function getListaFiltrada(f1, f2) {
     return listaFiltrada;
 }
 
-function volverFechaANum(fecha) {
-    let num = 0;
+function fechaEsMayorQueHoy(f) {
+    let hoy = new Date();
+    let fecha = new Date(f);
 
-    for (let i = 0; i < fecha.length; i++) {
-        if (fecha[i] != "-") {
-            num += fecha[i];
-        }
-    }
-
-    return Number(num);
-}
-
-function fechaEsValida(fecha) {
-    return volverFechaANum(fecha) <= volverFechaANum(getFechaActual());
-}
-
-function fijarFecha() {
-    let date = new Date();
-    let year = date.getFullYear();
-    let month = date.getMonth();
-    let day = date.getDate();
-    document
-        .querySelector("#calendario")
-        .setAttribute("max", `${year}-${month}-${day}T23:59:59`);
+    return fecha > hoy;
 }
 
 async function getCalorias() {
@@ -664,7 +637,7 @@ async function eliminarRegistro(id) {
 
         getListaAlimentos();
     } catch (err) {
-        console.log(err);
+        mostrarToast(err, 5000);
     }
 }
 
