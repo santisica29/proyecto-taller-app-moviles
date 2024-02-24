@@ -12,6 +12,9 @@ const NAV = document.querySelector("ion-nav");
 const loading = document.createElement("ion-loading");
 let caloriasTotales;
 let caloriasDelDia;
+let latitud;
+let longitud;
+navigator.geolocation.getCurrentPosition(setearCoordenadas);
 
 inicio();
 
@@ -50,12 +53,16 @@ function eventos() {
     document
         .querySelector("#btnRegistrarComida")
         .addEventListener("click", registrarAlimento);
+
+    document
+        .querySelector("#btnBuscarUsuariosEnPaises")
+        .addEventListener("click", mostrarUsuariosEnPaises);
 }
 
 function tomarDatosLogin() {
     let username = document.getElementById("userL").value;
     let pw = document.getElementById("passwordL").value;
-    // validar que no esten vacios.
+
     if (pw === "" || username === "") {
         mostrarToast("Todos los datos son obligatorios.", 3000);
         return;
@@ -219,6 +226,7 @@ function mostrarToast(mensaje, duracion) {
 function navegar(e) {
     let RUTA = e.detail.to;
     ocultarTodo();
+    let token = localStorage.getItem('token')
 
     if (RUTA == "/") {
         HOME.style.display = "block";
@@ -228,16 +236,37 @@ function navegar(e) {
         REGISTRO.style.display = "block";
         poblarSelectDePaises();
     } else if (RUTA == "/cargar-alimentos") {
+        if (!token){
+            NAV.push("page-home");
+            mostrarToast('Debe ingresar con su usuario primero', 3000);
+            return;
+        }
         CARGARALIMENTOS.style.display = "block";
         poblarSelectAlimentos();
     } else if (RUTA == "/lista-alimentos") {
+        if (!token){
+            NAV.push("page-home");
+            mostrarToast('Debe ingresar con su usuario primero', 3000);
+            return;
+        }
         LISTARALIMENTOS.style.display = "block";
         getListaAlimentos();
     } else if (RUTA == "/calorias") {
+        if (!token){
+            NAV.push("page-home");
+            mostrarToast('Debe ingresar con su usuario primero', 3000);
+            return;
+        }
         CALORIAS.style.display = "block";
         mostrarCalorias();
     } else if (RUTA == "/mapa") {
+        if (!token){
+            NAV.push("page-home");
+            mostrarToast('Debe ingresar con su usuario primero', 3000);
+            return;
+        }
         MAPA.style.display = "block";
+        mostrarMiUbicacion();
     }
 }
 
@@ -389,7 +418,7 @@ async function getListaAlimentos() {
         if (data.registros.length < 1) {
             lista.innerHTML = `No tiene registros hechos.`;
         } else {
-            lista.innerHTML = mostrarBotonDeListaFiltrada()
+            lista.innerHTML = mostrarBotonDeListaFiltrada();
 
             for (let comida of data.registros) {
                 for (let c of alimentos.alimentos) {
@@ -399,9 +428,18 @@ async function getListaAlimentos() {
                             c.porcion,
                             c.calorias
                         );
-                        let fecha = comida.fecha === getFechaActual() ? "Hoy" : comida.fecha;
+                        let fecha =
+                            comida.fecha === getFechaActual()
+                                ? "Hoy"
+                                : comida.fecha;
 
-                        lista.innerHTML += crearCardDeComida(fecha, c.imagen, c.nombre, caloriasDeAlimento, comida.id);
+                        lista.innerHTML += crearCardDeComida(
+                            fecha,
+                            c.imagen,
+                            c.nombre,
+                            caloriasDeAlimento,
+                            comida.id
+                        );
                     }
                 }
             }
@@ -411,7 +449,7 @@ async function getListaAlimentos() {
     }
 }
 
-function mostrarBotonDeListaFiltrada(){
+function mostrarBotonDeListaFiltrada() {
     return `<ion-item>
             <ion-datetime-button datetime="fecha1"></ion-datetime-button>
             <ion-modal>
@@ -423,11 +461,17 @@ function mostrarBotonDeListaFiltrada(){
               <ion-datetime id="fecha2" presentation="date" show-default-buttons="true" done-text="Confirmar" cancel-text="Cancelar">
               </ion-datetime>
             </ion-modal>
+          </ion-item>
+
+          <ion-item>
           <ion-button color="dark-purple" onclick="getListaFiltradaAlimentos()">Filtrar busqueda</ion-button>
-          </ion-item>`
+          </ion-item>
+          <ion-item>
+          <ion-button color="dark-purple" onclick="getListaAlimentos()">Ver todos los registros</ion-button>
+          </ion-item>`;
 }
 
-function crearCardDeComida(fecha, imagen, nombre, calorias, id){
+function crearCardDeComida(fecha, imagen, nombre, calorias, id) {
     return `<ion-card color="light-purple">
             <ion-card-header>
               <ion-card-subtitle>${fecha}</ion-card-subtitle>
@@ -437,7 +481,7 @@ function crearCardDeComida(fecha, imagen, nombre, calorias, id){
               Calorias: ${calorias}
             </ion-card-content>
             <ion-button id="${id}" onclick="eliminarRegistro(this.id)" color="dark-purple">Eliminar Registro</ion-button>
-          </ion-card>`
+          </ion-card>`;
 }
 
 function validarFecha(f) {
@@ -459,22 +503,22 @@ async function getListaFiltradaAlimentos() {
     f1 = validarFecha(f1);
     f2 = validarFecha(f2);
 
+    if (fechaEsMayorQueHoy(f1) || fechaEsMayorQueHoy(f2)) {
+        mostrarToast("La fecha no puede ser mayor que hoy", 3500);
+        return;
+    }
+
     if (f1 > f2) {
         let aux = f2;
         f2 = f1;
         f1 = aux;
     }
 
-    if (fechaEsMayorQueHoy(f1) || fechaEsMayorQueHoy(f2)) {
-        mostrarToast("La fecha no puede ser mayor que hoy", 3500);
-        return;
-    }
-
     mostrarLoader("Cargando lista filtrada.");
     let listaFiltrada = await getListaFiltrada(f1, f2);
 
     if (listaFiltrada.length < 1) {
-        lista.innerHTML = mostrarBotonDeListaFiltrada()
+        lista.innerHTML = mostrarBotonDeListaFiltrada();
         lista.innerHTML += `<ion-item>No tiene registros hechos en esas fechas.</ion-item>`;
         detenerLoader();
         return;
@@ -494,7 +538,7 @@ async function getListaFiltradaAlimentos() {
     const alimentos = await responseAlimentos.json();
     detenerLoader();
 
-    lista.innerHTML = mostrarBotonDeListaFiltrada()
+    lista.innerHTML = mostrarBotonDeListaFiltrada();
     for (let comida of listaFiltrada) {
         for (let c of alimentos.alimentos) {
             if (comida.idAlimento === c.id) {
@@ -503,19 +547,16 @@ async function getListaFiltradaAlimentos() {
                     c.porcion,
                     c.calorias
                 );
-                let fecha = comida.fecha === getFechaActual() ? "Hoy" : comida.fecha;
-                
-                lista.innerHTML += `
-                            <ion-card color="light-purple">
-                <ion-card-header>
-                  <ion-card-subtitle>${fecha}</ion-card-subtitle>
-                  <ion-card-title><img src="https://calcount.develotion.com/imgs/${c.imagen}.png" /> ${c.nombre}</ion-card-title>
-                </ion-card-header>
-                <ion-card-content>
-                  Calorias: ${caloriasDeAlimento}
-                </ion-card-content>
-                <ion-button id="${comida.id}" onclick="eliminarRegistro(this.id)" color="dark-purple">Eliminar Registro</ion-button>
-              </ion-card>`;
+                let fecha =
+                    comida.fecha === getFechaActual() ? "Hoy" : comida.fecha;
+
+                lista.innerHTML += crearCardDeComida(
+                    fecha,
+                    c.imagen,
+                    c.nombre,
+                    caloriasDeAlimento,
+                    comida.id
+                );
             }
         }
     }
@@ -653,4 +694,101 @@ function ocultarTodo() {
     LISTARALIMENTOS.style.display = "none";
     MAPA.style.display = "none";
     CALORIAS.style.display = "none";
+}
+
+// mostrarMiUbicacion()
+
+function setearCoordenadas(position) {
+    latitud = position.coords.latitude;
+    longitud = position.coords.longitude;
+}
+
+function mostrarMiUbicacion(position) {
+    setTimeout(function () {
+        cargarMapa();
+    }, 2000);
+}
+var map = null;
+
+function cargarMapa() {
+    if (map != null) {
+        map.remove();
+    }
+
+    map = L.map("map").setView([latitud, longitud], 14);
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    var marker1 = L.marker([latitud, longitud]).addTo(map);
+
+    marker1.bindPopup("<b>Soy la ubicacion del usuario</b>");
+}
+
+async function buscarPaisesConMasCantidadDeUsuarios() {
+    let cantidad = Number(document.querySelector("#cantidadUsuarios").value);
+
+    if (cantidad === 0) {
+        mostrarToast("Debe ingresar un valor mayor que 0", 2000);
+        return;
+    }
+
+    let lista = [];
+
+    const response = await fetch(
+        `https://calcount.develotion.com/usuariosPorPais.php`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+                apikey: localStorage.getItem("token"),
+                iduser: localStorage.getItem("idUser"),
+            },
+        }
+    );
+
+    const data = await response.json();
+
+    const responseListaPaisesCompleta = await fetch(
+        "https://calcount.develotion.com/paises.php"
+    );
+
+    const dataListaPaisesCompleta = await responseListaPaisesCompleta.json();
+
+    for (let pais of data.paises) {
+        for (let p of dataListaPaisesCompleta.paises) {
+            if (pais.cantidadDeUsuarios > cantidad && pais.id === p.id) {
+                pais.longitud = p.longitude;
+                pais.latitud = p.latitude;
+                lista.push(pais);
+            }
+        }
+    }
+
+    return lista;
+}
+
+async function mostrarUsuariosEnPaises() {
+    mostrarLoader("Cargando");
+    const listaDePaisesConMasUsuarios = await buscarPaisesConMasCantidadDeUsuarios();
+    detenerLoader();
+
+    if (map != null) {
+        map.remove();
+    }
+
+    map = L.map("map").setView([latitud, longitud], 3);
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    for (let pais of listaDePaisesConMasUsuarios) {
+        L.marker([pais.latitud, pais.longitud])
+            .addTo(map)
+            .bindPopup(`<br>${pais.name} - ${pais.cantidadDeUsuarios}</br>`);
+    }
 }

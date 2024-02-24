@@ -8,6 +8,10 @@
   <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
   <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/script.js" async></script>
 </head>
@@ -91,7 +95,8 @@
             <ion-input label="Usuario" label-placement="floating" placeholder="username" id="usuarioR"></ion-input>
           </ion-item>
           <ion-item>
-            <ion-input label="Password" type="password" label-placement="floating" placeholder="" id="passwordR"></ion-input>
+            <ion-input label="Password" type="password" label-placement="floating" placeholder=""
+              id="passwordR"></ion-input>
           </ion-item>
           <ion-item>
             <ion-select label="Pais" label-placement="floating" id="paisR"></ion-select>
@@ -130,7 +135,8 @@
           <ion-item>
             <ion-datetime-button datetime="calendario"></ion-datetime-button>
             <ion-modal>
-              <ion-datetime id="calendario" presentation="date" show-default-buttons="true" done-text="Confirmar" cancel-text="Cancelar">
+              <ion-datetime id="calendario" presentation="date" show-default-buttons="true" done-text="Confirmar"
+                cancel-text="Cancelar">
               </ion-datetime>
             </ion-modal>
           </ion-item>
@@ -192,7 +198,12 @@
         </ion-toolbar>
       </ion-header>
       <ion-content>
-
+        <ion-item>
+          <ion-input label="Cantidad de usuarios" type="number" label-placement="floating" id="cantidadUsuarios"
+            style="width: fit-content; margin-right: .7rem;"></ion-input>
+          <ion-button color="dark-purple" id="btnBuscarUsuariosEnPaises">Buscar</ion-button>
+        </ion-item>
+        <div id="map"></div>
       </ion-content>
       <ion-footer>
         <ion-toolbar>

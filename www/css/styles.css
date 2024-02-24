@@ -67,7 +67,7 @@
 ion-card {
 	padding: 1rem;
 	border: 5px solid #6b046b;
-	max-width: max-content;
+	max-width: auto;
 	margin: 1rem auto;
 	color: #450345;
 	transition: all 0.3s ease-in-out;
@@ -102,6 +102,10 @@ ion-button:hover {
 	width: 34%;
 	display: block;
 	margin: 2.5rem auto;
+}
+
+#map {
+	height: 680px;
 }
 
 @media (max-width: 900px) {
